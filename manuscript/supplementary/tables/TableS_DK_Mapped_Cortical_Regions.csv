@@ -1,0 +1,15 @@
+original_region,hemi,region,region_hemi,mean_z,sd_z,tail_prob
+lh_posteriorcingulate_thickness,left,posterior cingulate,Left Posterior cingulate,-4.57652954077167e-4,1.0108313156653577,0.035226077812828605
+rh_parahippocampal_thickness,right,parahippocampal,Right Parahippocampal cortex,-3.0201773302998645e-4,0.8216254169062026,0.02576235541535226
+rh_temporalpole_thickness,right,temporal pole,Right Temporal pole,-2.1507182028572766e-4,1.1064186545673975,0.07781282860147214
+lh_precuneus_thickness,left,precuneus,Left Precuneus,-9.617370663225511e-5,0.7518272669255001,0.015247108307045216
+lh_inferiortemporal_thickness,left,inferior temporal,Left Inferior temporal,-6.720243941186616e-5,0.9270833967115277,0.03785488958990536
+lh_temporalpole_thickness,left,temporal pole,Left Temporal pole,-2.1288559388765903e-5,1.0881270942354586,0.07045215562565721
+lh_middletemporal_thickness,left,middle temporal,Left Middle temporal,7.681248982953054e-5,0.8349520081890247,0.028916929547844375
+rh_posteriorcingulate_thickness,right,posterior cingulate,Right Posterior cingulate,1.1127531542961723e-4,0.80467580843099,0.015772870662460567
+lh_entorhinal_thickness,left,entorhinal,Left Entorhinal cortex,1.21022146589839e-4,0.9712575970459332,0.05152471083070452
+rh_inferiortemporal_thickness,right,inferior temporal,Right Inferior temporal,1.4171634586714597e-4,0.9305459700801281,0.04100946372239748
+rh_precuneus_thickness,right,precuneus,Right Precuneus,1.5118351365798764e-4,0.7663469579757108,0.017875920084121977
+lh_parahippocampal_thickness,left,parahippocampal,Left Parahippocampal cortex,2.376483802426912e-4,0.6715555373904837,0.006834910620399579
+rh_entorhinal_thickness,right,entorhinal,Right Entorhinal cortex,3.714176192510445e-4,1.019563708728276,0.054679284963196635
+rh_middletemporal_thickness,right,middle temporal,Right Middle temporal,4.90490349990328e-4,0.8174242319706377,0.024710830704521555

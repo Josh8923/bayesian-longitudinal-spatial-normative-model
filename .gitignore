@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+
+# R
+.Rhistory
+.RData
+.Rproj.user
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.blg
+*.bbl
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Stan / CmdStan
+cmdstan_output*/
+*.hpp
+
+# Large objects
+*.rds
+*.RDS
+
+# Compressed files
+*.zip
+*.tar.gz
+
+# Temporary cache
+*_cache/
+
+# Keep manuscript outputs
+!manuscript/figures/
+!manuscript/supplementary/figures/
+!manuscript/supplementary/tables/
+
+# Keep simulation outputs
+!simulations/figures/
+!simulations/results/*.csv
