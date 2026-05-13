@@ -131,7 +131,7 @@ Additional package development and methodological extensions are ongoing.
 
 If you use this repository or the associated methodology, please cite:
 
-Korley, J. (2026). *Bayesian Longitudinal Spatial Normative Modeling*. GitHub repository and Zenodo archive.
+Korley, J.T. (2026). *Bayesian Longitudinal Spatial Normative Modeling*. GitHub repository and Zenodo archive.
 
 Repository DOI:
 https://doi.org/10.5281/zenodo.20154009
