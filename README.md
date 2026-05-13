@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/1237432237.svg)](https://doi.org/10.5281/zenodo.20154008)
 # Bayesian Longitudinal Spatial Normative Modeling
 
 This repository contains the code, simulation framework, and manuscript materials for a Bayesian longitudinal spatial normative modeling framework for individualized structural neuroimaging analysis.
@@ -121,3 +122,16 @@ Manuscript Status
 Methodological manuscript and supplementary materials currently included in repository.
 
 Additional package development and methodological extensions are ongoing.
+
+
+
+---
+
+# Citation
+
+If you use this repository or the associated methodology, please cite:
+
+Korley, J. (2026). *Bayesian Longitudinal Spatial Normative Modeling*. GitHub repository and Zenodo archive.
+
+Repository DOI:
+https://doi.org/10.5281/zenodo.20154009
