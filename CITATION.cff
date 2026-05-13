@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "Bayesian Longitudinal Spatial Normative Modeling"
+message: "If you use this repository, please cite the manuscript and repository."
+type: software
+
+authors:
+  - family-names: "Korley"
+    given-names: "Joshua"
+
+repository-code: "https://github.com/Josh8923/bayesian-longitudinal-spatial-normative-model"
+
+abstract: >
+  Bayesian longitudinal spatial normative modeling framework for
+  individualized structural neuroimaging analysis using repeated
+  MRI measurements and subject-specific latent spatial deviation
+  processes.
+
+keywords:
+  - Bayesian modeling
+  - normative modeling
+  - neuroimaging
+  - longitudinal data
+  - spatial statistics
+  - structural MRI
+  - individualized inference
+  - Stan
+
+license: MIT
