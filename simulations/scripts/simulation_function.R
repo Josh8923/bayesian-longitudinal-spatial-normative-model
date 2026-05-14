@@ -1,47 +1,25 @@
-# Bayesian longitudinal spatial normative model simulation study
-# This script implements the simulation design used in the manuscript.
-# It includes data generation, benchmark models, the proposed Bayesian
-# longitudinal spatial model in Stan, evaluation metrics, and Monte Carlo wrappers.
+# ##------------------------------------------------------------
+### Bayesian longitudinal spatial normative model simulation study
+####. Core utilities for data generation, model fitting, and evaluation.
+# ##------------------------------------------------------------
 
-required_packages <- c(
-  "dplyr", "tidyr", "purrr", "tibble", "stringr", "Matrix",
-  "mvtnorm", "lme4", "cmdstanr", "posterior"
-)
+ library(dplyr)
+library(tidyr)
+library(purrr)
+library(tibble)
+library(stringr)
+library(Matrix)
+library(mvtnorm)
+library(lme4)
+library(cmdstanr)
+library(posterior)
 
-missing_packages <- required_packages[
-  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
-]
 
-if (length(missing_packages) > 0) {
-  stop(
-    "Install the following packages before running this script: ",
-    paste(missing_packages, collapse = ", "),
-    call. = FALSE
-  )
-}
 
-suppressPackageStartupMessages({
-  library(dplyr)
-  library(tidyr)
-  library(purrr)
-  library(tibble)
-  library(stringr)
-  library(Matrix)
-  library(mvtnorm)
-  library(lme4)
-  library(cmdstanr)
-  library(posterior)
-})
+`%||%` <- function(x, y) if (is.null(x)) y else x  ## # function to clean results later
 
-if (is.null(cmdstanr::cmdstan_version(error_on_NA = FALSE))) {
-  stop(
-    "CmdStan is not installed. Run cmdstanr::install_cmdstan() first.",
-    call. = FALSE
-  )
-}
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
+## Spatial adjacency and precision matrix utilities
 make_chain_adjacency <- function(R) {
   if (!is.numeric(R) || length(R) != 1 || R < 2) {
     stop("R must be a single integer >= 2.", call. = FALSE)
@@ -66,7 +44,7 @@ make_precision_matrix <- function(W, rho, jitter = 1e-5) {
   }
 
   D <- diag(rowSums(W))
-  Q <- D - rho * W + diag(jitter, nrow(W))
+  Q <- D - rho * W + diag(jitter, nrow(W))  ### Proper CAR precision
   eigvals <- eigen(Q, symmetric = TRUE, only.values = TRUE)$values
 
   if (min(eigvals) <= 0) {
@@ -79,6 +57,7 @@ make_precision_matrix <- function(W, rho, jitter = 1e-5) {
   Q
 }
 
+## Design matrix utilities
 make_design_matrix <- function(age, sex, nonlinear = FALSE) {
   if (!nonlinear) {
     X <- cbind(1, age, sex)
@@ -108,6 +87,8 @@ standardize_design_matrix <- function(X) {
   list(X = X_std, means = means, sds = sds)
 }
 
+
+# #Abnormality signal generation
 make_abnormal_shift <- function(R,
                                 pattern = c("localized", "diffuse"),
                                 effect_size = 0.8,
@@ -130,32 +111,34 @@ make_abnormal_shift <- function(R,
   list(delta = delta, abnormal_regions = abnormal_regions)
 }
 
+
+## Longitudinal neuroimaging data generation
 simulate_brain_longitudinal <- function(
-  n_subj = 120,
-  R = 20,
-  visits = 3,
-  visits_range = c(2L, 5L),
-  variable_visits = FALSE,
-  nonlinear = FALSE,
-  rho = 0.5,
-  sigma_b = 0.5,
-  tau_u = 0.8,
-  sigma = 0.6,
-  beta_intercept_mean = 5.0,
-  beta_intercept_sd = 0.5,
-  beta_age_mean = -0.03,
-  beta_age_sd = 0.01,
-  beta_sex_mean = 0.15,
-  beta_sex_sd = 0.05,
-  beta_age2_mean = 0.00015,
-  beta_age2_sd = 0.00005,
-  proportion_abnormal = 0.25,
-  abnormal_pattern = c("localized", "diffuse"),
-  abnormal_effect_size = 0.8,
-  missing_followup = FALSE,
-  missing_strength = 0.15,
-  W = NULL,
-  seed = NULL
+    n_subj = 120,
+    R = 20,
+    visits = 3,
+    visits_range = c(2L, 5L),
+    variable_visits = FALSE,
+    nonlinear = FALSE,
+    rho = 0.5,
+    sigma_b = 0.5,
+    tau_u = 0.8,
+    sigma = 0.6,
+    beta_intercept_mean = 5.0,
+    beta_intercept_sd = 0.5,
+    beta_age_mean = -0.03,
+    beta_age_sd = 0.01,
+    beta_sex_mean = 0.15,
+    beta_sex_sd = 0.05,
+    beta_age2_mean = 0.00015,
+    beta_age2_sd = 0.00005,
+    proportion_abnormal = 0.25,
+    abnormal_pattern = c("localized", "diffuse"),
+    abnormal_effect_size = 0.8,
+    missing_followup = FALSE,
+    missing_strength = 0.15,
+    W = NULL,
+    seed = NULL
 ) {
   abnormal_pattern <- match.arg(abnormal_pattern)
 
@@ -168,7 +151,7 @@ simulate_brain_longitudinal <- function(
   }
 
   Q <- make_precision_matrix(W, rho = rho)
-  Sigma_u <- solve(Q + diag(1e-5, nrow(Q))) * tau_u^2
+  Sigma_u <- solve(Q + diag(1e-5, nrow(Q))) * tau_u^2  # Spatial covariance
 
   beta0 <- rnorm(R, mean = beta_intercept_mean, sd = beta_intercept_sd)
   beta1 <- rnorm(R, mean = beta_age_mean, sd = beta_age_sd)
@@ -226,7 +209,7 @@ simulate_brain_longitudinal <- function(
     }
 
     X_i <- make_design_matrix(age = age_vec, sex = sex_i, nonlinear = nonlinear)
-    mean_mat <- X_i %*% beta_mat
+    mean_mat <- X_i %*% beta_mat  # ##Region-specific normative mean
 
     subject_df <- expand.grid(
       subject = i,
@@ -248,7 +231,7 @@ simulate_brain_longitudinal <- function(
     row_counter <- 1L
     for (t in seq_len(Ti)) {
       for (r in seq_len(R)) {
-        mu_itr <- mean_mat[t, r] + b_i + u_i[r]
+        mu_itr <- mean_mat[t, r] + b_i + u_i[r] # # Mean + subject + spatial deviation
         if (i %in% abnormal_ids) {
           mu_itr <- mu_itr + delta_vec[r]
         }
@@ -346,6 +329,8 @@ simulate_brain_longitudinal <- function(
   list(data = long_data, truth = truth)
 }
 
+
+# ##Benchmark model A: independent cross-sectional model
 fit_model_A <- function(dat, nonlinear = FALSE) {
   regions <- sort(unique(dat$region))
   fits <- vector("list", length(regions))
@@ -396,6 +381,8 @@ fit_model_A <- function(dat, nonlinear = FALSE) {
   )
 }
 
+
+# ##Benchmark model B: longitudinal non-spatial model
 fit_model_B <- function(dat, nonlinear = FALSE) {
   regions <- sort(unique(dat$region))
   fits <- vector("list", length(regions))
@@ -459,6 +446,9 @@ fit_model_B <- function(dat, nonlinear = FALSE) {
   )
 }
 
+
+
+# Proposed Bayesian longitudinal spatial model in Stan
 brain_spatial_stan_code <- '
 data {
   int<lower=1> N;
@@ -517,6 +507,9 @@ write_brain_spatial_stan <- function(stan_file = "brain_spatial_normative_model.
   invisible(stan_file)
 }
 
+
+
+## # Stan data preparation and posterior extraction
 prepare_stan_data <- function(dat, Q, nonlinear = FALSE) {
   X_raw <- make_design_matrix(age = dat$age, sex = dat$sex, nonlinear = nonlinear)
   X_scaled <- standardize_design_matrix(X_raw)
@@ -638,14 +631,7 @@ fit_model_C <- function(dat,
     dplyr::select(subject, region, u_hat) %>%
     arrange(subject, region)
 
-  # diag_summary <- fit$diagnostic_summary()
-  # sampler_diagnostics <- list(
-  #   failed = FALSE,
-  #   max_rhat = max(diag_summary$rhat, na.rm = TRUE),
-  #   min_ess_bulk = min(diag_summary$ess_bulk, na.rm = TRUE),
-  #   min_ess_tail = min(diag_summary$ess_tail, na.rm = TRUE)
-  # )
-  diag_summary <- fit$summary()
+  diag_summary <- fit$summary()  # Convergence and ESS diagnostics
 
   rhat_vals <- diag_summary$rhat
   ess_bulk_vals <- diag_summary$ess_bulk
@@ -671,6 +657,8 @@ fit_model_C <- function(dat,
   )
 }
 
+
+# #Simulation evaluation metrics
 compute_normative_metrics <- function(pred_df, reference_only = TRUE) {
   eval_df <- pred_df
 
@@ -768,6 +756,8 @@ collect_model_metrics <- function(fit_obj, truth_u_df) {
   )
 }
 
+
+# ##Monte Carlo replicate and simulation-study wrappers
 run_one_replicate <- function(sim_args,
                               stan_file = "brain_spatial_normative_model.stan",
                               mod = NULL,
@@ -816,18 +806,18 @@ run_one_replicate <- function(sim_args,
 }
 
 run_simulation_study <- function(
-  M = 10,
-  scenario_name = "Scenario_1_NoSpatial",
-  sim_args = list(),
-  stan_file = "brain_spatial_normative_model.stan",
-  chains = 2,
-  parallel_chains = 2,
-  iter_warmup = 500,
-  iter_sampling = 500,
-  refresh = 100,
-  seed = 2025,
-  adapt_delta = 0.95,
-  max_treedepth = 12
+    M = 10,
+    scenario_name = "Scenario_1_NoSpatial",
+    sim_args = list(),
+    stan_file = "brain_spatial_normative_model.stan",
+    chains = 2,
+    parallel_chains = 2,
+    iter_warmup = 500,
+    iter_sampling = 500,
+    refresh = 100,
+    seed = 2025,
+    adapt_delta = 0.95,
+    max_treedepth = 12
 ) {
   if (is.null(sim_args)) {
     stop("sim_args is NULL. Use a valid scenario name.", call. = FALSE)
@@ -865,7 +855,7 @@ run_simulation_study <- function(
       )
   }
 
-  results <- bind_rows(out)
+  results <- bind_rows(out)  ### Replicate-level results
 
   summary_table <- results %>%
     group_by(scenario, model) %>%
@@ -891,6 +881,8 @@ run_simulation_study <- function(
   list(raw = results, summary = summary_table)
 }
 
+
+# Simulation scenario definitions
 get_simulation_scenarios <- function() {
   scenarios <- list(
     Scenario_1_NoSpatial = list(
@@ -992,20 +984,4 @@ get_simulation_scenarios <- function() {
   scenarios
 }
 
-# Example usage
-# source("brain_normative_simulation.R")
-# scenarios <- get_simulation_scenarios()
-# sim_results <- run_simulation_study(
-#   M = 1000,
-#   scenario_name = "Scenario_2_ModerateSpatial",
-#   sim_args = scenarios$Scenario_2_ModerateSpatial,
-#   stan_file = "brain_spatial_normative_model.stan",
-#   chains = 2,
-#   parallel_chains = 2,
-#   iter_warmup = 500,
-#   iter_sampling = 500,
-#   seed = 2025,
-#   adapt_delta = 0.95,
-#   max_treedepth = 12
-# )
-# saveRDS(sim_results, "sim_results_Scenario_2_ModerateSpatial.rds")
+
